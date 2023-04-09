@@ -12,8 +12,7 @@ import SwiftUI
 private struct DispatchKey : EnvironmentKey {
     
     static let defaultValue: Dispatch = { _ in
-        // TODO: 
-        fatalError("TODO: //")
+        // Nothing happens
     }
 }
 
