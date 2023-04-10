@@ -7,7 +7,15 @@
 
 import Redux
 
-public protocol ThunkAction : Action {
-        
-    func handle<State>(_ getState: @escaping () -> State, _ dispatch: @escaping Dispatch)
+public struct ThunkAction<State> : Action {
+    
+    public let _handler: (@escaping () -> State, @escaping Dispatch) -> Void
+    
+    init(_ handler: @escaping (_ getState: @escaping () -> State, _ dispatch: Dispatch) -> Void) {
+        _handler = handler
+    }
+    
+    func handle(_ getState: @escaping () -> State, _ dispatch: @escaping Dispatch) {
+        _handler(getState, dispatch)
+    }
 }

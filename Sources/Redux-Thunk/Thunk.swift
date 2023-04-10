@@ -13,7 +13,7 @@ struct ThunkMiddleware<State> : Middleware {
         return { next in
             return { action in
                 switch action {
-                case let thunkAction as ThunkAction:
+                case let thunkAction as ThunkAction<State>:
                     thunkAction.handle(api.getState, api.dispatch)
                 default:
                     next(action)
