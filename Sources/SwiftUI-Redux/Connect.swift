@@ -9,39 +9,33 @@ import Combine
 import Redux
 import SwiftUI
 
-private struct DispatchKey : EnvironmentKey {
-    
-    static let defaultValue: Dispatch = { _ in
-        // Nothing happens
-    }
-}
-
-extension EnvironmentValues {
-    
-    public var dispatch: Dispatch {
-        get { self[DispatchKey.self] }
-        set { self[DispatchKey.self] = newValue }
-    }
-}
-
-
-public struct Connect<State, Props, Content> : View where Props : ObservableObject, Content : View {
+internal struct Connect<State, Content> : View where Content : View {
     
     @EnvironmentObject private var store: _Store<State>
-    
-    private let map: (State, @escaping Dispatch) -> Props
-    
-    private let content: () -> Content
-    
-    public init(map: @escaping (State, @escaping Dispatch) -> Props, @ViewBuilder content: @escaping () -> Content) {
-        self.map = map
-        self.content = content
-    }
+        
+    internal let content: (State, @escaping Dispatch) -> Content
     
     public var body: some View {
-        let props = map(store.state, store.dispatch)
-        content()
-            .environmentObject(props)
-            .environment(\.dispatch, store.dispatch)
+        content(store.state, store.dispatch(_:))
+    }
+}
+
+public protocol ConnectedView : View {
+    
+    associatedtype State
+    associatedtype Props
+    associatedtype Body
+    
+    static func map(state: State, dispatch: @escaping Dispatch) -> Props
+    
+    func body(props: Props) -> Body
+}
+
+extension ConnectedView {
+    
+    public var body: some View {
+        Connect { state, dispatch in
+            body(props: Self.map(state: state, dispatch: dispatch))
+        }
     }
 }
