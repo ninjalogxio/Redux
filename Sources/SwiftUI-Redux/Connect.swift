@@ -22,11 +22,11 @@ internal struct Connect<State, Content> : View where Content : View {
 
 public protocol ConnectedView : View {
     
-    associatedtype State
+    associatedtype AppState
     associatedtype Props
     associatedtype V : View
     
-    static func map(state: State, dispatch: @escaping Dispatch) -> Props
+    static func map(state: AppState, dispatch: @escaping Dispatch) -> Props
     
     func body(props: Props) -> V
 }
