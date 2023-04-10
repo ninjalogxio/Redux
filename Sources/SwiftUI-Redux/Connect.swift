@@ -24,11 +24,11 @@ public protocol ConnectedView : View {
     
     associatedtype State
     associatedtype Props
-    associatedtype Body
+    associatedtype V : View
     
     static func map(state: State, dispatch: @escaping Dispatch) -> Props
     
-    func body(props: Props) -> Body
+    func body(props: Props) -> V
 }
 
 extension ConnectedView {
