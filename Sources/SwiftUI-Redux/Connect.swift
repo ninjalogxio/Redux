@@ -16,7 +16,7 @@ internal struct Connect<State, Content> : View where Content : View {
     internal let content: (State, @escaping Dispatch) -> Content
     
     public var body: some View {
-        content(store.state, store.dispatch(_:))
+        content(store.getState(), store.dispatch(_:))
     }
 }
 
