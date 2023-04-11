@@ -78,6 +78,16 @@ public class Store<State> : StoreProtocol {
         return observation
     }
     
+    public func addObserver<O, S>(_ observer: O, transform: @escaping (Transform<State>) -> Transform<S>) -> Disposable where O : Observer, S : Equatable, O.Value == S {
+        let first = Transform<State>()
+        transform(first).removeDuplicates().update {
+            observer.receive($1)
+        }
+        let observation = Observation(parent: self, transform: first)
+        observationList.insert(observation)
+        return observation
+    }
+    
     internal func disassociate(_ observation: Observation<State>) {
         observationList.remove(observation)
     }

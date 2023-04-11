@@ -18,5 +18,7 @@ public protocol StoreProtocol {
     func addObserver<O>(_ observer: O) -> Disposable where O : Observer, O.Value == State
     
     func addObserver<O, S>(_ observer: O, transform: @escaping (Transform<State>) -> Transform<S>) -> Disposable where O : Observer, O.Value == S
+    
+    func addObserver<O, S>(_ observer: O, transform: @escaping (Transform<State>) -> Transform<S>) -> Disposable where O : Observer, S : Equatable, O.Value == S
 }
 

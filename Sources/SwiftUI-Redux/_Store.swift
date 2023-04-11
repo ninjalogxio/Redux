@@ -65,11 +65,5 @@ extension _Store {
         func receive(_ value: State) {
             parent.state = value
         }
-        
-        func receive(_ value: State) where State : Equatable {
-            if parent.state != value {
-                parent.state = value
-            }
-        }
     }
 }
