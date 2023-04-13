@@ -48,7 +48,7 @@ extension Observables.Publisher {
         
         private let lock = Lock()
         
-        private var finished = false
+        private var state = ObservationStatus.awaiting
         
         private var observation: Observation?
         
@@ -58,42 +58,54 @@ extension Observables.Publisher {
         
         func receive(observation: Observation) {
             lock.lock()
-            if finished || self.observation != nil {
+            guard case .awaiting = state else {
                 lock.unlock()
                 observation.dispose()
                 return
             }
-            self.observation = observation
+            
+            state = .observed(observation)
             lock.unlock()
             downstream.receive(subscription: self)
         }
         
         func receive(_ input: Input) {
             lock.lock()
-            if finished {
+            switch state {
+            case .awaiting:
                 lock.unlock()
-                return
+                fatalError("Invalid state: Received value before receiving observation")
+            case .completed:
+                lock.unlock()
+            case .observed:
+                lock.unlock()
+                _ = downstream.receive(input)
             }
-            
-            lock.unlock()
-            _ = downstream.receive(input)
         }
         
         func request(_ demand: Subscribers.Demand) {
             lock.lock()
-            let observation = self.observation
-            lock.unlock()
-            observation?.request()
+            switch state {
+            case .awaiting:
+                lock.unlock()
+                fatalError("Invalid state: Received request before sending observation")
+            case .completed:
+                lock.unlock()
+                return
+            case .observed(let observation):
+                lock.unlock()
+                observation.request()
+            }
         }
         
         func cancel() {
             lock.lock()
-            guard !finished, let observation = observation else {
+            guard case .observed(let observation) = state else {
+                state = .completed
                 lock.unlock()
                 return
             }
-            self.observation = nil
-            finished = true
+            state = .completed
             lock.unlock()
             observation.dispose()
         }
