@@ -33,7 +33,7 @@ public class Store<State> : StoreProtocol, Observable {
             dispatch(ReduxInitAction())
         }
     }
-        
+    
     public func getState() -> State {
         guard !isDispatching else {
             fatalError("You may not call store.getState() while the reducer is executing. "
@@ -111,7 +111,7 @@ extension Store {
             self.parent = parent
             self.downstream = downstream
         }
-                
+        
         override func offer(_ output: Store<State>.Output) {
             lock.lock()
             deliveredCurrentValue = true
@@ -133,7 +133,7 @@ extension Store {
                 lock.unlock()
                 return
             }
-
+            
             lock.unlock()
             downstreamLock.lock()
             downstream.receive(currentValue)
@@ -149,5 +149,5 @@ extension Store {
             parent?.disassociate(self)
         }
     }
-
+    
 }

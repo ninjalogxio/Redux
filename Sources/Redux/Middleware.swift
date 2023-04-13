@@ -25,7 +25,7 @@ extension Middleware {
         return handle(api)
     }
     
-    public func eraseToAnyPublisher() -> AnyMiddleware<State> {
+    public func eraseToAnyMiddleware() -> AnyMiddleware<State> {
         return AnyMiddleware(handle)
     }
 }

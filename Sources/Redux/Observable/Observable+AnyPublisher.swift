@@ -5,13 +5,12 @@
 //  Created by Kinglets on 2023/4/13.
 //
 
+#if canImport(Combine)
 import Combine
-import Foundation
-import Redux
 
-internal extension Observable {
+extension Observable {
     
-    func eraseToAnyPublisher() -> AnyPublisher<Output, Never> {
+    public func eraseToAnyPublisher() -> AnyPublisher<Output, Never> {
         return Observables.Publisher(upstream: self)
             .eraseToAnyPublisher()
     }
@@ -41,13 +40,13 @@ extension Observables {
 
 extension Observables.Publisher {
     
-    final class Inner<Downstream> : Observer, Subscription where Downstream : Subscriber, Downstream.Input == Output {
+    private final class Inner<Downstream> : Observer, Subscription where Downstream : Subscriber, Downstream.Input == Output {
         
         typealias Input = Downstream.Input
         
         private let downstream: Downstream
         
-        private let semaphore = DispatchSemaphore(value: 1)
+        private let lock = Lock()
         
         private var finished = false
         
@@ -58,45 +57,46 @@ extension Observables.Publisher {
         }
         
         func receive(observation: Observation) {
-            semaphore.wait()
+            lock.lock()
             if finished || self.observation != nil {
-                semaphore.signal()
+                lock.unlock()
                 observation.dispose()
                 return
             }
             self.observation = observation
-            semaphore.signal()
+            lock.unlock()
             downstream.receive(subscription: self)
         }
         
         func receive(_ input: Input) {
-            semaphore.wait()
+            lock.lock()
             if finished {
-                semaphore.signal()
+                lock.unlock()
                 return
             }
             
-            semaphore.signal()
+            lock.unlock()
             _ = downstream.receive(input)
         }
         
         func request(_ demand: Subscribers.Demand) {
-            semaphore.wait()
+            lock.lock()
             let observation = self.observation
-            semaphore.signal()
+            lock.unlock()
             observation?.request()
         }
         
         func cancel() {
-            semaphore.wait()
+            lock.lock()
             guard !finished, let observation = observation else {
-                semaphore.signal()
+                lock.unlock()
                 return
             }
             self.observation = nil
             finished = true
-            semaphore.signal()
+            lock.unlock()
             observation.dispose()
         }
     }
 }
+#endif

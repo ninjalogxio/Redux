@@ -9,33 +9,29 @@ import Combine
 import Redux
 import SwiftUI
 
-internal struct Connect<State, Content> : View where Content : View {
+private struct DispatchEnvironmentKey : EnvironmentKey {
     
-    @EnvironmentObject private var store: SwiftUIStateStore<State>
-        
-    internal let content: (State, @escaping Dispatch) -> Content
-    
-    public var body: some View {
-        content(store.getState(), store.dispatch(_:))
+    public static let defaultValue: Dispatch = { _ in
+        fatalError("Please use 'Connect<State, Content>' to inject dispatch function")
     }
 }
 
-public protocol ConnectedView : View {
+extension EnvironmentValues {
     
-    associatedtype AppState
-    associatedtype Props
-    associatedtype V : View
-    
-    static func map(state: AppState, dispatch: @escaping Dispatch) -> Props
-    
-    func body(props: Props) -> V
+    public var dispatch: Dispatch {
+        get { self[DispatchEnvironmentKey.self] }
+        set { self[DispatchEnvironmentKey.self] = newValue }
+    }
 }
 
-extension ConnectedView {
+public struct Connect<State, Content> : View where Content : View {
+    
+    @EnvironmentObject private var store: SwiftUIStateStore<State>
+        
+    public let content: (SwiftUIStateStore<State>) -> Content
     
     public var body: some View {
-        Connect { state, dispatch in
-            body(props: Self.map(state: state, dispatch: dispatch))
-        }
+        content(store)
+            .environment(\.dispatch, store.dispatch)
     }
 }
