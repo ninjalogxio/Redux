@@ -31,9 +31,7 @@ extension Observables {
         }
                 
         func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, Output == S.Input {
-            let outer = Inner(downstream: subscriber)
-            subscriber.receive(subscription: outer)
-            upstream.receive(observer: outer)
+            upstream.receive(observer: Inner(downstream: subscriber))
         }
     }
 }
