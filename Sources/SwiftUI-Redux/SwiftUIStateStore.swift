@@ -11,43 +11,25 @@ import SwiftUI
 
 public final class SwiftUIStateStore<State> : ObservableObject, StoreProtocol {
     
-    private var state: PassthroughSubject<State, Never> = PassthroughSubject()
-    
-    private let _getState: () -> State
-    
-    private let _dispatch: Dispatch
-    
-    private var disposables: Set<AnyDisposable> = []
+    private let _store: Store<State>
     
     internal init(_ store: Store<State>) {
-        _getState = store.getState
-        _dispatch = store.dispatch(_:)
-        
-        store.sink { [state] in
-            state.send($0)
-        }.store(in: &disposables)
+        _store = store
     }
     
     public func getState() -> State {
-        return _getState()
+        return _store.getState()
     }
     
     public func dispatch(_ action: Action) {
-        _dispatch(action)
+        _store.dispatch(action)
     }
     
     public func publisher<Value>(for keyPath: KeyPath<State, Value>) -> AnyPublisher<Value, Never> {
-        return state.map(keyPath).eraseToAnyPublisher()
+        _store.map(keyPath).eraseToAnyPublisher()
     }
-    //
-    public func publisher<Value>(
-        for keyPath: KeyPath<State, Value>,
-        removeDuplicates: Bool = true
-    ) -> AnyPublisher<Value, Never> where Value: Equatable {
-        let publisher = state.map(keyPath)
-        if removeDuplicates {
-            return publisher.removeDuplicates().eraseToAnyPublisher()
-        }
-        return publisher.eraseToAnyPublisher()
+    
+    public func publisher<Value>(for keyPath: KeyPath<State, Value>) -> AnyPublisher<Value, Never> where Value: Equatable {
+        _store.map(keyPath).removeDuplicates().eraseToAnyPublisher()
     }
 }

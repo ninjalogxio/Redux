@@ -37,10 +37,10 @@ extension Observables {
         
         public let keyPath: KeyPath<Upstream.Output, Output>
         
-        public func observe<Downstream>(
-            _ observer: Downstream
+        public func receive<Downstream>(
+            observer: Downstream
         ) where Downstream : Observer, Output == Downstream.Input {
-            upstream.observe(Inner(downstream: observer, parent: self))
+            upstream.receive(observer: Inner(downstream: observer, parent: self))
         }
     }
     
@@ -54,10 +54,10 @@ extension Observables {
         
         public let keyPath1: KeyPath<Upstream.Output, Output1>
         
-        public func observe<Downstream>(
-            _ observer: Downstream
+        public func receive<Downstream>(
+            observer: Downstream
         ) where Downstream : Observer, Output == Downstream.Input {
-            upstream.observe(Inner(downstream: observer, parent: self))
+            upstream.receive(observer: Inner(downstream: observer, parent: self))
         }
     }
     
@@ -73,10 +73,10 @@ extension Observables {
         
         public let keyPath2: KeyPath<Upstream.Output, Output2>
         
-        public func observe<Downstream>(
-            _ observer: Downstream
+        public func receive<Downstream>(
+            observer: Downstream
         ) where Downstream : Observer, Output == Downstream.Input {
-            upstream.observe(Inner(downstream: observer, parent: self))
+            upstream.receive(observer: Inner(downstream: observer, parent: self))
         }
     }
     

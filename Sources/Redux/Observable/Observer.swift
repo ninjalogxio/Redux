@@ -21,7 +21,7 @@ public struct AnyObserver<Input> : Observer {
     private let _receiveObservation: (Observation) -> Void
     private let _receiveValue: (Input) -> Void
     
-    init(
+    public init(
         receiveObservation: @escaping (Observation) -> Void,
         receiveValue: @escaping (Input) -> Void
     ) {

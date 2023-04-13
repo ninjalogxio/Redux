@@ -67,8 +67,8 @@ public class Store<State> : StoreProtocol, Observable {
     
     private var downstreams = ConduitList<Output>.empty
     
-    public func observe<Downstream>(
-        _ observer: Downstream
+    public func receive<Downstream>(
+        observer: Downstream
     ) where Downstream : Observer, Output == Downstream.Input {
         lock.lock()
         let conduit = Conduit(parent: self, downstream: observer)

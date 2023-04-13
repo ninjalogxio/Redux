@@ -27,10 +27,10 @@ extension Observables {
             self.transform = transform
         }
         
-        public func observe<Downstream>(
-            _ observer: Downstream
+        public func receive<Downstream>(
+            observer: Downstream
         ) where Downstream : Observer, Output == Downstream.Input {
-            upstream.observe(Inner(downstream: observer, map: transform))
+            upstream.receive(observer: Inner(downstream: observer, map: transform))
         }
     }
 }

@@ -11,7 +11,7 @@ extension Observable {
     
     public func sink(receiveValue: @escaping (Output) -> Void) -> AnyDisposable {
         let observer = Observers.Sink(receiveValue: receiveValue)
-        observe(observer)
+        receive(observer: observer)
         return AnyDisposable(observer)
     }
 }

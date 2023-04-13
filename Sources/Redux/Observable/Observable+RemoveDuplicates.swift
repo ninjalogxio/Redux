@@ -36,10 +36,10 @@ extension Observables {
             self.predicate = predicate
         }
         
-        public func observe<Downstream>(
-            _ observer: Downstream
+        public func receive<Downstream>(
+            observer: Downstream
         ) where Downstream : Observer, Upstream.Output == Downstream.Input {
-            upstream.observe(Inner(downstream: observer, filter: predicate))
+            upstream.receive(observer: Inner(downstream: observer, filter: predicate))
         }
     }
 }

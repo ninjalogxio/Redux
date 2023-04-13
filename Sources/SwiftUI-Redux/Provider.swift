@@ -10,9 +10,9 @@ import SwiftUI
 
 public struct Provider<State, Content> : View where Content : View {
     
-    private let store: SwiftUIStateStore<State>
+    public let store: SwiftUIStateStore<State>
     
-    private let content: () -> Content
+    public let content: () -> Content
     
     public init(store: Store<State>, @ViewBuilder content: @escaping () -> Content) {
         self.store = SwiftUIStateStore(store)
