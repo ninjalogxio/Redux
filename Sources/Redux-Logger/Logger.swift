@@ -21,5 +21,5 @@ struct CreateLogger<State> : Middleware {
 }
 
 public func createLogger<State>() -> AnyMiddleware<State> {
-    return CreateLogger().eraseToAnyPublisher()
+    return CreateLogger().eraseToAnyMiddleware()
 }

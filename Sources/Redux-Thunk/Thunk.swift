@@ -24,5 +24,5 @@ struct ThunkMiddleware<State> : Middleware {
 }
 
 public func createThunk<State>() -> AnyMiddleware<State> {
-    return ThunkMiddleware<State>().eraseToAnyPublisher()
+    return ThunkMiddleware<State>().eraseToAnyMiddleware()
 }
