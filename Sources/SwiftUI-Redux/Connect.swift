@@ -30,6 +30,10 @@ public struct Connect<State, Content> : View where Content : View {
         
     public let content: (SwiftUIStateStore<State>) -> Content
     
+    public init(@ViewBuilder content: @escaping (SwiftUIStateStore<State>) -> Content) {
+        self.content = content
+    }
+    
     public var body: some View {
         content(store)
             .environment(\.dispatch, store.dispatch)
