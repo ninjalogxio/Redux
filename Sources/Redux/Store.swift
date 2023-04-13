@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class Store<State> : StoreProtocol {
+public class Store<State> : StoreProtocol, Observable {
     
     private let currentReducer: AnyReducer<State>
     
@@ -52,34 +52,102 @@ public class Store<State> : StoreProtocol {
             fatalError("Reducers may not dispatch actions.")
         }
         
-        let oldValue = currentState
         isDispatching = true
         currentState = currentReducer(currentState, action)
         isDispatching = false
         
-        observationList.forEach {
-            $0.receive(oldValue: oldValue, newValue: currentState)
+        sendValue(currentState)
+    }
+    
+    // MARK: - Observable
+    
+    public typealias Output = State
+    
+    private let lock = Lock()
+    
+    private var downstreams = ConduitList<Output>.empty
+    
+    public func observe<Downstream>(
+        _ observer: Downstream
+    ) where Downstream : Observer, Output == Downstream.Input {
+        lock.lock()
+        let conduit = Conduit(parent: self, downstream: observer)
+        downstreams.insert(conduit)
+        lock.unlock()
+        observer.receive(observation: conduit)
+    }
+    
+    private func disassociate(_ conduit: ConduitBase<State>) {
+        lock.lock()
+        downstreams.remove(conduit)
+        lock.unlock()
+    }
+    
+    private func sendValue(_ newValue: Output) {
+        lock.lock()
+        let downstreams = self.downstreams
+        lock.unlock()
+        downstreams.forEach { conduit in
+            conduit.offer(newValue)
         }
-    }
-    
-    private var observationList = ObservationList<State>()
-    
-    public func addObserver<O>(_ observer: O) -> Disposable where O : Observer, O.Value == State {
-        return addObserver(observer) { $0 }
-    }
-    
-    public func addObserver<O, S>(_ observer: O, transform: @escaping (Transform<State>) -> Transform<S>) -> Disposable where O : Observer, O.Value == S {
-        let first = Transform<State>()
-        transform(first).update {
-            observer.receive($1)
-        }
-        let observation = Observation(parent: self, transform: first)
-        observationList.insert(observation)
-        return observation
-    }
-    
-    internal func disassociate(_ observation: Observation<State>) {
-        observationList.remove(observation)
     }
 }
 
+extension Store {
+    
+    internal class Conduit<Downstream> : ConduitBase<Output> where Downstream : Observer, Downstream.Input == Output {
+        
+        private var parent: Store?
+        
+        private let downstream: Downstream
+        
+        private let lock = Lock()
+        
+        private let downstreamLock = Lock()
+        
+        private var deliveredCurrentValue = false
+        
+        init(parent: Store, downstream: Downstream) {
+            self.parent = parent
+            self.downstream = downstream
+        }
+                
+        override func offer(_ output: Store<State>.Output) {
+            lock.lock()
+            deliveredCurrentValue = true
+            lock.unlock()
+            downstreamLock.lock()
+            downstream.receive(output)
+            downstreamLock.unlock()
+        }
+        
+        override func request() {
+            lock.lock()
+            if deliveredCurrentValue {
+                lock.unlock()
+                return
+            }
+            
+            deliveredCurrentValue = true
+            guard let currentValue = parent?.currentState else {
+                lock.unlock()
+                return
+            }
+
+            lock.unlock()
+            downstreamLock.lock()
+            downstream.receive(currentValue)
+            downstreamLock.unlock()
+        }
+        
+        override func dispose() {
+            lock.lock()
+            let parent = self.parent
+            self.parent = nil
+            lock.unlock()
+            
+            parent?.disassociate(self)
+        }
+    }
+
+}

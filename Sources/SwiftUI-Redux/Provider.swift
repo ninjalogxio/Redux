@@ -8,14 +8,14 @@
 import Redux
 import SwiftUI
 
-public struct Provider<StoreType, Content> : View where StoreType : StoreProtocol, Content : View {
+public struct Provider<State, Content> : View where Content : View {
     
-    private let store: _Store<StoreType.State>
+    private let store: SwiftUIStateStore<State>
     
     private let content: () -> Content
     
-    public init(store: StoreType, @ViewBuilder content: @escaping () -> Content) {
-        self.store = _Store(store)
+    public init(store: Store<State>, @ViewBuilder content: @escaping () -> Content) {
+        self.store = SwiftUIStateStore(store)
         self.content = content
     }
     

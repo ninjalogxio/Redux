@@ -11,7 +11,7 @@ import SwiftUI
 
 internal struct Connect<State, Content> : View where Content : View {
     
-    @EnvironmentObject private var store: _Store<State>
+    @EnvironmentObject private var store: SwiftUIStateStore<State>
         
     internal let content: (State, @escaping Dispatch) -> Content
     
